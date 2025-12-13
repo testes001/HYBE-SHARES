@@ -1,0 +1,164 @@
+{
+  "id": "102019ac49f110075cb9f8a1a59310c320b",
+  "version": "102019b11cfa3a378f586276c85196669dd",
+  "schema": {
+    "name": "user_content_progress",
+    "description": "Tracks user progress through educational content.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for the progress record.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal identifier."
+        }
+      },
+      {
+        "name": "user_id",
+        "description": "Foreign key referencing the user.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 4,
+          "reason": "Links to PII."
+        }
+      },
+      {
+        "name": "content_id",
+        "description": "Foreign key referencing the educational content.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Public identifier."
+        }
+      },
+      {
+        "name": "completed",
+        "description": "Flag indicating if the user has completed the content.",
+        "type": 3,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "User progress data."
+        }
+      },
+      {
+        "name": "completed_at",
+        "description": "Timestamp when the user completed the content in 10-digit unix string.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "User progress data."
+        },
+        "nullable": true,
+        "format": "timestamp"
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal audit trail."
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal audit trail."
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Standard timestamping."
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Standard timestamping."
+        },
+        "format": "timestamp"
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "content_id",
+          "user_id"
+        ],
+        "unique": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ],
+    "relations": [
+      {
+        "referencing_fields": [
+          "user_id"
+        ],
+        "referenced_entity": {
+          "name": "user"
+        },
+        "referenced_fields": [
+          "id"
+        ],
+        "cascade": true
+      },
+      {
+        "referencing_fields": [
+          "content_id"
+        ],
+        "referenced_entity": {
+          "name": "educational_content"
+        },
+        "referenced_fields": [
+          "id"
+        ],
+        "cascade": true
+      }
+    ]
+  },
+  "task": {
+    "id": "693bdaebf3e1deef7a9703e2",
+    "root": "69281530eba4976d6c38ab7a",
+    "project": "69281530eba4976d6c38ab79",
+    "user": "88e1e320-f0c1-7017-5338-314d797229dc"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}

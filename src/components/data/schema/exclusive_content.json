@@ -1,0 +1,176 @@
+{
+  "id": "102019ac49e7472796d8f610064ccbf4791",
+  "version": "102019ac49e7472778c97f1c717d612fba9",
+  "schema": {
+    "name": "exclusive_content",
+    "description": "Stores exclusive content for users who meet certain criteria.",
+    "fields": [
+      {
+        "name": "id",
+        "description": "Unique identifier for the exclusive content.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal identifier."
+        }
+      },
+      {
+        "name": "title",
+        "description": "Title of the content.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Platform content data."
+        }
+      },
+      {
+        "name": "description",
+        "description": "Description of the content.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Platform content data."
+        },
+        "nullable": true
+      },
+      {
+        "name": "content_type",
+        "description": "The type of media content.",
+        "type": 100,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal classification."
+        },
+        "enumeration": [
+          {
+            "value": "Unspecified"
+          },
+          {
+            "number": 1,
+            "value": "Video"
+          },
+          {
+            "number": 2,
+            "value": "Photo"
+          },
+          {
+            "number": 3,
+            "value": "Article"
+          },
+          {
+            "number": 4,
+            "value": "Announcement"
+          }
+        ]
+      },
+      {
+        "name": "content_url",
+        "description": "URL to the full content.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Platform content data."
+        }
+      },
+      {
+        "name": "thumbnail_url",
+        "description": "URL to a thumbnail image for the content.",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Platform content data."
+        },
+        "nullable": true
+      },
+      {
+        "name": "min_shares_required",
+        "description": "Minimum number of shares of a specific stock required to access this content.",
+        "type": 2,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Business rule data."
+        },
+        "numeric": "int"
+      },
+      {
+        "name": "data_creator",
+        "description": "id of the user who creates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal audit trail."
+        }
+      },
+      {
+        "name": "data_updater",
+        "description": "id of the user who updates the record",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 2,
+          "reason": "Internal audit trail."
+        }
+      },
+      {
+        "name": "create_time",
+        "description": "create time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Standard timestamping."
+        },
+        "format": "timestamp"
+      },
+      {
+        "name": "update_time",
+        "description": "update time in timestamp unix",
+        "type": 1,
+        "compliance": {
+          "confidentiality": 1,
+          "reason": "Standard timestamping."
+        },
+        "format": "timestamp"
+      }
+    ],
+    "indexes": [
+      {
+        "fields": [
+          "id"
+        ],
+        "unique": true,
+        "primary": true,
+        "order": false
+      },
+      {
+        "fields": [
+          "content_type"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_creator"
+        ],
+        "order": false
+      },
+      {
+        "fields": [
+          "data_updater"
+        ],
+        "order": false
+      }
+    ]
+  },
+  "task": {
+    "id": "69281530eba4976d6c38ab7a",
+    "root": "69281530eba4976d6c38ab7a",
+    "project": "69281530eba4976d6c38ab79",
+    "user": "88e1e320-f0c1-7017-5338-314d797229dc"
+  },
+  "namespace": {
+    "id": "01987547fc6c72ecb453bd2736bd4ea0",
+    "tenant": 2,
+    "name": "global-1",
+    "default": true
+  },
+  "revision": 1
+}
