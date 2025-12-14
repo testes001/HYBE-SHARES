@@ -301,7 +301,7 @@
     },
     "parameters": {
       "CreaoApiNameHeader": {
-        "name": "X-CREAO-API-NAME",
+        "name": "X-API-NAME",
         "in": "header",
         "required": true,
         "schema": {
