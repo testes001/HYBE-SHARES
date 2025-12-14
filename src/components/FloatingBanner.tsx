@@ -1,4 +1,10 @@
 import CreaoLogo from "@/assets/creao_logo.svg?react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCreaoAuth } from "@/sdk/core/auth";
 import { useState } from "react";
 
@@ -62,28 +68,37 @@ export function FloatingBanner({
 					aria-label="Creao Logo"
 				/>
 			</span>
-			<button
-				type="button"
-				className="ml-2 text-white/80 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 rounded"
-				onClick={handleClose}
-				aria-label="Close banner"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					className="h-4 w-4"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
-			</button>
+			<TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<button
+							type="button"
+							className="ml-2 text-white/80 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 rounded"
+							onClick={handleClose}
+							aria-label="Close banner"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								className="h-4 w-4"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								aria-hidden="true"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>Close</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 		</div>
 	);
 }
