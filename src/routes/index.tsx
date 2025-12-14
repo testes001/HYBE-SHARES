@@ -1570,6 +1570,7 @@ function App() {
   const [loginPassword, setLoginPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Register state
   const [registerName, setRegisterName] = useState("");
@@ -2166,9 +2167,11 @@ function App() {
   // Handle login
   const handleLogin = async () => {
     setAuthError("");
+    setIsLoggingIn(true);
 
     if (!loginEmail || !loginPassword) {
       setAuthError("Please enter email and password");
+      setIsLoggingIn(false);
       return;
     }
 
@@ -2178,6 +2181,7 @@ function App() {
 
       if (users.length === 0) {
         setAuthError("User not found");
+        setIsLoggingIn(false);
         return;
       }
 
@@ -2185,6 +2189,7 @@ function App() {
 
       if (!verifyPassword(loginPassword, user.password_hash)) {
         setAuthError("Invalid password");
+        setIsLoggingIn(false);
         return;
       }
 
@@ -3511,8 +3516,16 @@ function App() {
           className="w-full h-12 text-lg mt-4"
           style={{ background: `linear-gradient(135deg, ${HYBE_COLORS.gradientStart}, ${HYBE_COLORS.gradientEnd})` }}
           onClick={handleLogin}
+          disabled={isLoggingIn}
         >
-          Sign In
+          {isLoggingIn ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Signing In...
+            </>
+          ) : (
+            "Sign In"
+          )}
         </Button>
 
         <p className="text-gray-400 text-center mt-4">
