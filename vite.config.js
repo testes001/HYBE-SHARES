@@ -12,6 +12,7 @@ export default defineConfig({
 	base: process.env.TENANT_ID ? `/${process.env.TENANT_ID}/` : "/",
 	define: {
 		"import.meta.env.TENANT_ID": JSON.stringify(process.env.TENANT_ID || ""),
+		"import.meta.env.VITE_API_URL": JSON.stringify(process.env.VITE_API_URL || process.env.API_URL || "http://localhost:3001"),
 	},
 	plugins: [
 		...creaoPlugins(),
