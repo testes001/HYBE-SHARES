@@ -4,6 +4,7 @@ const PgSession = require('connect-pg-simple')(session);
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
+const { runMigrations } = require('./migrations/migrate');
 
 const app = express();
 const port = process.env.PORT || 3001;
