@@ -112,7 +112,18 @@ const initializeTables = async () => {
   }
 };
 
-initializeTables();
+const initializeApp = async () => {
+  try {
+    await initializeTables();
+    await runMigrations(pool);
+    console.log('✓ Application database initialization complete');
+  } catch (err) {
+    console.error('Application initialization failed:', err);
+    process.exit(1);
+  }
+};
+
+initializeApp();
 
 // ============================================================================
 // AUTHENTICATION & SESSION ENDPOINTS
