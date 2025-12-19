@@ -1,22 +1,23 @@
-import { getAuthTokenAsync } from "./auth";
+import { getUserIdAsync } from "./auth";
 import { reportToParentWindow } from "./internal/creao-shell";
 
 const API_BASE_PATH = import.meta.env.VITE_MCP_API_BASE_PATH;
 
 /**
- * a simple wrapper for `fetch` with authentication token and error handling
+ * a simple wrapper for `fetch` with authentication and error handling
+ *
+ * Automatically includes session cookies (credentials: 'include')
+ * for secure server-side session management.
  */
 export async function platformRequest(
 	url: string | URL | Request,
 	options: RequestInit = {},
 ): Promise<Response> {
-	const token = await getAuthTokenAsync();
+	const userId = await getUserIdAsync();
 	const method = options.method || "GET";
 
 	const headers = new Headers(options.headers);
-	if (token) {
-		headers.set("Authorization", `Bearer ${token}`);
-	}
+
 	if (typeof url === 'object' && url && 'headers' in url) {
 		url.headers?.forEach?.((value, key) => {
 			headers.set(key, value);
@@ -45,9 +46,9 @@ export async function platformRequest(
 	const response = await fetch(realUrl, {
 		...options,
 		headers,
+		credentials: 'include', // Include cookies with all requests for session management
 	});
 
-	// TODO: check response status and throw error if not 200
 	reportToParentWindow({
 		type: "platform-request",
 		timestamp: new Date().toISOString(),
