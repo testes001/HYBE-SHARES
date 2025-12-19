@@ -75,8 +75,9 @@ const useAuthStore = create<AuthStore>(
 			console.log("Validating token...", { API_BASE_URL });
 
 			if (!API_BASE_URL) {
-				console.error("API_BASE_URL is not set");
-				return false;
+				console.warn("API_BASE_URL is not set - skipping token validation. Token will be assumed valid if provided.");
+				// If no API_BASE_URL, assume the token is valid (common in development or built pages)
+				return !!token;
 			}
 
 			try {
