@@ -2401,9 +2401,9 @@ function App() {
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setCurrentUser(null);
-    localStorage.removeItem("hybe_paper_user_id");
+    await logout();
     setCurrentView("splash");
   };
 
