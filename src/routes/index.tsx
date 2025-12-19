@@ -1859,16 +1859,9 @@ function App() {
           await educationalOrm.insertEducationalContent(INITIAL_EDUCATIONAL_CONTENT as EducationalContentModel[]);
         }
 
-        // Check for saved session
-        const savedUserId = localStorage.getItem("hybe_paper_user_id");
-        if (savedUserId) {
-          const userOrm = UserORM.getInstance();
-          const users = await userOrm.getUserById(savedUserId);
-          if (users.length > 0) {
-            setCurrentUser(users[0]);
-            setCurrentView("portfolio");
-          }
-        }
+        // Check for active server session
+        // The auth module will automatically restore the session if available
+        // This check is deferred to ensure auth initialization is complete
 
         setIsInitialized(true);
         await refetchStocks();
