@@ -4,6 +4,7 @@ const PgSession = require('connect-pg-simple')(session);
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
+const { runMigrations } = require('./migrations/migrate');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -111,7 +112,18 @@ const initializeTables = async () => {
   }
 };
 
-initializeTables();
+const initializeApp = async () => {
+  try {
+    await initializeTables();
+    await runMigrations(pool);
+    console.log('✓ Application database initialization complete');
+  } catch (err) {
+    console.error('Application initialization failed:', err);
+    process.exit(1);
+  }
+};
+
+initializeApp();
 
 // ============================================================================
 // AUTHENTICATION & SESSION ENDPOINTS
@@ -309,6 +321,339 @@ app.post('/api/motd', async (req, res) => {
     client.release();
   } catch (err) {
     res.status(500).json({ error: 'Failed to set message of the day' });
+  }
+});
+
+// ============================================================================
+// HYBE PERMIT LICENSES
+// ============================================================================
+
+app.get('/api/permits/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT * FROM hybe_permits WHERE permit_code = $1 AND is_active = true',
+      [code.toUpperCase()]
+    );
+
+    client.release();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Permit not found' });
+    }
+
+    const permit = result.rows[0];
+    res.status(200).json({
+      permit_code: permit.permit_code,
+      name: permit.name,
+      email: permit.email,
+    });
+  } catch (err) {
+    console.error('Error fetching permit:', err);
+    res.status(500).json({ error: 'Failed to fetch permit' });
+  }
+});
+
+app.get('/api/permits', async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT permit_code, name, email FROM hybe_permits WHERE is_active = true ORDER BY created_at DESC'
+    );
+
+    client.release();
+
+    res.status(200).json({
+      permits: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching permits:', err);
+    res.status(500).json({ error: 'Failed to fetch permits' });
+  }
+});
+
+// ============================================================================
+// STOCKS & MARKET DATA
+// ============================================================================
+
+app.get('/api/stocks', async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT * FROM stocks ORDER BY symbol ASC'
+    );
+
+    client.release();
+
+    res.status(200).json({
+      stocks: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching stocks:', err);
+    res.status(500).json({ error: 'Failed to fetch stocks' });
+  }
+});
+
+app.get('/api/stocks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT * FROM stocks WHERE id = $1 OR symbol = $1',
+      [id]
+    );
+
+    client.release();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Stock not found' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching stock:', err);
+    res.status(500).json({ error: 'Failed to fetch stock' });
+  }
+});
+
+app.get('/api/stocks/:id/price-history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit = 30 } = req.query;
+
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT * FROM stock_prices_history WHERE stock_id = $1 ORDER BY timestamp DESC LIMIT $2',
+      [id, limit]
+    );
+
+    client.release();
+
+    res.status(200).json({
+      stock_id: id,
+      history: result.rows.reverse(),
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching price history:', err);
+    res.status(500).json({ error: 'Failed to fetch price history' });
+  }
+});
+
+// ============================================================================
+// FEATURED STOCKS
+// ============================================================================
+
+app.get('/api/featured-stocks', async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(`
+      SELECT fs.id, fs.stock_id, fs.position, fs.description,
+             s.symbol, s.name, s.current_price, s.previous_close
+      FROM featured_stocks fs
+      JOIN stocks s ON fs.stock_id = s.id
+      ORDER BY fs.position ASC
+    `);
+
+    client.release();
+
+    res.status(200).json({
+      featured_stocks: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching featured stocks:', err);
+    res.status(500).json({ error: 'Failed to fetch featured stocks' });
+  }
+});
+
+// ============================================================================
+// EDUCATIONAL CONTENT
+// ============================================================================
+
+app.get('/api/educational-content', async (req, res) => {
+  try {
+    const { category, difficulty } = req.query;
+
+    let query = 'SELECT * FROM educational_content WHERE 1=1';
+    const params = [];
+
+    if (category) {
+      params.push(category);
+      query += ` AND category = $${params.length}`;
+    }
+
+    if (difficulty) {
+      params.push(difficulty);
+      query += ` AND difficulty = $${params.length}`;
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const client = await pool.connect();
+    const result = await client.query(query, params);
+    client.release();
+
+    res.status(200).json({
+      content: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching educational content:', err);
+    res.status(500).json({ error: 'Failed to fetch educational content' });
+  }
+});
+
+// ============================================================================
+// EXCLUSIVE CONTENT
+// ============================================================================
+
+app.get('/api/exclusive-content', async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT * FROM exclusive_content ORDER BY created_at DESC'
+    );
+
+    client.release();
+
+    res.status(200).json({
+      content: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching exclusive content:', err);
+    res.status(500).json({ error: 'Failed to fetch exclusive content' });
+  }
+});
+
+// ============================================================================
+// USER PORTFOLIO
+// ============================================================================
+
+app.get('/api/portfolio/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const client = await pool.connect();
+
+    const result = await client.query(
+      'SELECT * FROM user_portfolios WHERE user_id = $1',
+      [userId]
+    );
+
+    client.release();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching portfolio:', err);
+    res.status(500).json({ error: 'Failed to fetch portfolio' });
+  }
+});
+
+app.post('/api/portfolio/:userId/create', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const portfolioId = `portfolio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const client = await pool.connect();
+
+    const result = await client.query(
+      `INSERT INTO user_portfolios (id, user_id, total_value, cash_balance)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id) DO UPDATE SET updated_at = CURRENT_TIMESTAMP
+       RETURNING *`,
+      [portfolioId, userId, 0, 10000000]
+    );
+
+    client.release();
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error creating portfolio:', err);
+    res.status(500).json({ error: 'Failed to create portfolio' });
+  }
+});
+
+// ============================================================================
+// LEADERBOARD
+// ============================================================================
+
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const { limit = 100, offset = 0 } = req.query;
+
+    const client = await pool.connect();
+
+    const result = await client.query(
+      `SELECT * FROM leaderboard
+       ORDER BY rank ASC, portfolio_value DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    client.release();
+
+    res.status(200).json({
+      leaderboard: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching leaderboard:', err);
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
+// ============================================================================
+// USER NOTIFICATIONS
+// ============================================================================
+
+app.get('/api/notifications/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 50 } = req.query;
+
+    const client = await pool.connect();
+
+    const result = await client.query(
+      `SELECT * FROM user_notifications
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [userId, limit]
+    );
+
+    client.release();
+
+    res.status(200).json({
+      notifications: result.rows,
+      count: result.rows.length,
+    });
+  } catch (err) {
+    console.error('Error fetching notifications:', err);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 });
 
