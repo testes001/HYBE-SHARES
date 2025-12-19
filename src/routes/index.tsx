@@ -2321,7 +2321,9 @@ function App() {
 
       const newUser = newUsers[0];
       setCurrentUser(newUser);
-      localStorage.setItem("hybe_paper_user_id", newUser.id);
+
+      // Store session on server
+      await login(newUser.id);
 
       // Add HYBE to watchlist by default (non-blocking)
       const hybeStock = stocks.find(s => s.symbol === "HYBE");
