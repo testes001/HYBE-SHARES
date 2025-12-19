@@ -26,7 +26,22 @@ export async function platformRequest(
 		headers.set("Content-Type", "application/json");
 	}
 
-	const realUrl = typeof url === "string" ? new URL(url, API_BASE_PATH) : url;
+	let realUrl: URL | string | Request;
+
+	if (typeof url === "string") {
+		if (API_BASE_PATH) {
+			realUrl = new URL(url, API_BASE_PATH);
+		} else {
+			// If no API_BASE_PATH is set and url is relative, construct a proper error
+			if (!url.startsWith('http://') && !url.startsWith('https://')) {
+				throw new Error(`Cannot make request to relative URL "${url}" without VITE_MCP_API_BASE_PATH environment variable set`);
+			}
+			realUrl = url;
+		}
+	} else {
+		realUrl = url;
+	}
+
 	const response = await fetch(realUrl, {
 		...options,
 		headers,
