@@ -164,6 +164,11 @@ export default {
 	authenticatedFetch,
 	clearAuth,
 	refreshAuth,
+	getUserId,
+	getUserIdAsync,
+	login,
+	logout,
+	refreshSession,
 	authApi,
 	useCreaoAuth,
 };
