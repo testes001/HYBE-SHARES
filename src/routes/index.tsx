@@ -138,6 +138,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PageTransition, usePageTransition } from "@/components/PageTransition";
 import { useTheme } from "next-themes";
+import { login, logout } from "@/lib/auth-integration";
 
 import {
   useUser,
@@ -1858,16 +1859,9 @@ function App() {
           await educationalOrm.insertEducationalContent(INITIAL_EDUCATIONAL_CONTENT as EducationalContentModel[]);
         }
 
-        // Check for saved session
-        const savedUserId = localStorage.getItem("hybe_paper_user_id");
-        if (savedUserId) {
-          const userOrm = UserORM.getInstance();
-          const users = await userOrm.getUserById(savedUserId);
-          if (users.length > 0) {
-            setCurrentUser(users[0]);
-            setCurrentView("portfolio");
-          }
-        }
+        // Check for active server session
+        // The auth module will automatically restore the session if available
+        // This check is deferred to ensure auth initialization is complete
 
         setIsInitialized(true);
         await refetchStocks();
@@ -2194,7 +2188,9 @@ function App() {
       }
 
       setCurrentUser(user);
-      localStorage.setItem("hybe_paper_user_id", user.id);
+
+      // Store session on server
+      await login(user.id);
 
       // Create login notification
       const notificationOrm = NotificationORM.getInstance();
@@ -2325,7 +2321,9 @@ function App() {
 
       const newUser = newUsers[0];
       setCurrentUser(newUser);
-      localStorage.setItem("hybe_paper_user_id", newUser.id);
+
+      // Store session on server
+      await login(newUser.id);
 
       // Add HYBE to watchlist by default (non-blocking)
       const hybeStock = stocks.find(s => s.symbol === "HYBE");
@@ -2403,9 +2401,9 @@ function App() {
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setCurrentUser(null);
-    localStorage.removeItem("hybe_paper_user_id");
+    await logout();
     setCurrentView("splash");
   };
 
