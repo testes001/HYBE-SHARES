@@ -138,6 +138,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PageTransition, usePageTransition } from "@/components/PageTransition";
 import { useTheme } from "next-themes";
+import { login, logout } from "@/lib/auth-integration";
 
 import {
   useUser,
