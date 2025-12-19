@@ -1818,27 +1818,42 @@ function App() {
       if (isInitialized) return;
 
       try {
-        // Check if stocks exist
-        const stockOrm = StockORM.getInstance();
-        const existingStocks = await stockOrm.getAllStock();
+        // Fetch stocks from backend API (database has been seeded by migrations)
+        const { fetchAllStocks } = await import("@/lib/backend-api");
 
-        if (existingStocks.length === 0) {
-          // Initialize stocks
-          await stockOrm.insertStock(INITIAL_STOCKS as StockModel[]);
+        try {
+          const apiStocks = await fetchAllStocks();
 
-          // Initialize price history for each stock
-          const priceHistoryOrm = PriceHistoryORM.getInstance();
-          const newStocks = await stockOrm.getAllStock();
+          if (apiStocks && apiStocks.length > 0) {
+            // Stocks were successfully loaded from the database
+            // The local ORM will be populated from API queries
+            console.log(`✓ Loaded ${apiStocks.length} stocks from database`);
+          }
+        } catch (apiError) {
+          console.warn("Could not fetch stocks from API, falling back to local initialization:", apiError);
 
-          for (const stock of newStocks) {
-            const history = generatePriceHistory(stock.current_price, 365);
-            for (const entry of history.slice(-30)) { // Last 30 days
-              await priceHistoryOrm.insertPriceHistory([{
-                stock_id: stock.id,
-                price: entry.price,
-                volume: entry.volume,
-                timestamp: entry.date,
-              } as any]);
+          // Fallback: Initialize from hardcoded data if API is not available
+          const stockOrm = StockORM.getInstance();
+          const existingStocks = await stockOrm.getAllStock();
+
+          if (existingStocks.length === 0) {
+            // Initialize stocks
+            await stockOrm.insertStock(INITIAL_STOCKS as StockModel[]);
+
+            // Initialize price history for each stock
+            const priceHistoryOrm = PriceHistoryORM.getInstance();
+            const newStocks = await stockOrm.getAllStock();
+
+            for (const stock of newStocks) {
+              const history = generatePriceHistory(stock.current_price, 365);
+              for (const entry of history.slice(-30)) { // Last 30 days
+                await priceHistoryOrm.insertPriceHistory([{
+                  stock_id: stock.id,
+                  price: entry.price,
+                  volume: entry.volume,
+                  timestamp: entry.date,
+                } as any]);
+              }
             }
           }
         }
