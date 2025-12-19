@@ -2188,7 +2188,9 @@ function App() {
       }
 
       setCurrentUser(user);
-      localStorage.setItem("hybe_paper_user_id", user.id);
+
+      // Store session on server
+      await login(user.id);
 
       // Create login notification
       const notificationOrm = NotificationORM.getInstance();
