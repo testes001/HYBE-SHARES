@@ -108,6 +108,31 @@ export const clearAuth = NewAuth.clearAuth;
 export const refreshAuth = NewAuth.refreshAuth;
 
 /**
+ * Get user ID (sync version)
+ */
+export const getUserId = NewAuth.getUserId;
+
+/**
+ * Get user ID (async - ensures initialization)
+ */
+export const getUserIdAsync = NewAuth.getUserIdAsync;
+
+/**
+ * Login with user credentials
+ */
+export const login = NewAuth.login;
+
+/**
+ * Logout and destroy session
+ */
+export const logout = NewAuth.logout;
+
+/**
+ * Refresh session timeout
+ */
+export const refreshSession = NewAuth.refreshSession;
+
+/**
  * For non-React environments, export a simple API client
  */
 export const authApi = platformApi;
